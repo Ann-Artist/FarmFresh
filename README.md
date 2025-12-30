@@ -1,7 +1,72 @@
-# FarmFresh Organic - Installation Guide
+# 🌱 FarmFresh Organic
 
-## Project Overview
-FarmFresh Organic is a web-based marketplace connecting farmers directly with customers for fresh, organic produce. Built with PHP, MySQL, and Bootstrap.
+FarmFresh Organic is a PHP and MySQL–based web application designed to connect local farmers directly with customers for fresh, organic produce.  
+The platform enables farmers to list products, customers to browse and purchase them through a cart system, and administrators to manage users, products, and orders efficiently.
+
+This project is built using core PHP with a clean, structured architecture and serves as both a functional marketplace and an educational full-stack web development project.
+
+---
+
+## 📌 Project Overview
+
+FarmFresh Organic is a web-based marketplace connecting farmers directly with customers for fresh, organic produce.  
+The system supports **role-based access** (Admin, Farmer, Customer) and implements essential e-commerce features such as product management, shopping cart, and order processing.
+
+---
+
+## 🚀 Features
+
+### 👤 User Roles
+- **Admin**
+  - Manage users, products, and orders
+  - Monitor system activity and data
+
+- **Farmer**
+  - Add, view, and delete products
+  - Manage inventory
+  - View customer orders and sales
+
+- **Customer**
+  - Browse and search products
+  - Add items to cart
+  - Checkout and place orders
+  - Track order history
+  - Rate and review products
+
+---
+
+## 🛒 Core Functionalities
+- User authentication (Login & Registration)
+- Role-based access control
+- Product listing and product details
+- Shopping cart system
+- Order and order-items management
+- Secure database interaction using MySQL
+- Image upload support for products
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend**: HTML5, CSS3, Bootstrap 5, JavaScript
+- **Backend**: PHP 7.4+
+- **Database**: MySQL
+- **Icons**: Font Awesome 6
+- **Server**: Apache (XAMPP / WAMP)
+- **Version Control**: Git & GitHub
+- **Architecture**: MVC-inspired structured PHP project
+
+---
+
+## 📋 Prerequisites
+
+- **XAMPP** or **WAMP** (includes Apache, PHP, MySQL)
+- Web browser (Chrome, Firefox, etc.)
+- Text editor (VS Code recommended)
+
+---
+
+## ⚙️ Installation Guide
 
 ## Prerequisites
 - **XAMPP** or **WAMP** (includes Apache, PHP 7.4+, MySQL)
@@ -182,7 +247,6 @@ Update SMTP settings in respective files for email notifications
 - Use prepared statements (already implemented)
 
 ## Support & Documentation
-- **Project Synopsis**: See `final project symposis.pdf`
 - **Bootstrap Docs**: https://getbootstrap.com/
 - **PHP Manual**: https://www.php.net/manual/
 - **MySQL Docs**: https://dev.mysql.com/doc/
@@ -197,20 +261,13 @@ As mentioned in the project synopsis:
 - Payment gateway integration
 
 ## Credits
-**Developed by Group 07**
-- Lakhan Uddhav Ashtekar (Roll No. 16)
-- Ajit Dadasaheb Jarande (Roll No. 19)
-- Rushikesh Pandurang Kende (Roll No. 24)
-- Shubham Satish Vanave (Roll No. 41)
+**Developed by:**
+- Anusha Randive
+- Anuj Sanap
 
-**Guide**: Mrs. P.A. Ternikar
-
-**Institute**: Pimpri Chinchwad Polytechnic
-Department of Information Technology
-Academic Year 2025-26 (ODD SEM)
 
 ## License
-Educational project for academic purposes.
+Educational project.
 
 ---
 
