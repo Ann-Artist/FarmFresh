@@ -82,6 +82,23 @@ function formatPrice($price) {
     return '₹' . number_format($price, 2);
 }
 
+// Get product image with fallback to placeholder
+function getProductImage($image, $product_name = 'Product') {
+    if (empty($image)) {
+        // Use online placeholder based on product name
+        return "https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop";
+    }
+    
+    $image_path = $_SERVER['DOCUMENT_ROOT'] . '/farmfresh/assets/images/' . $image;
+    
+    // If image file doesn't exist locally, use online placeholder
+    if (!file_exists($image_path)) {
+        return "https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop";
+    }
+    
+    return "/farmfresh/assets/images/" . $image;
+}
+
 // Time ago function
 function timeAgo($timestamp) {
     $time = strtotime($timestamp);

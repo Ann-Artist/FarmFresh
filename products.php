@@ -85,12 +85,15 @@ $categories_result = $conn->query($categories_sql);
                             <p class="text-muted small mb-2">
                                 <i class="fas fa-tag"></i> <?php echo ucfirst($product['category']); ?>
                             </p>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="product-price"><?php echo formatPrice($product['price']); ?>/<?php echo $product['unit']; ?></span>
-                                <span class="badge badge-organic">
-                                    <?php echo $product['quantity']; ?> <?php echo $product['unit']; ?> available
-                                </span>
-                            </div>
+                            <div class="product-price-wrapper mb-3">
+    <div class="product-price">
+        <?php echo formatPrice($product['price']); ?>/<?php echo $product['unit']; ?>
+    </div>
+    <div class="product-availability">
+        <?php echo $product['quantity']; ?> <?php echo $product['unit']; ?> available
+    </div>
+</div>
+
                             <div class="d-grid gap-2">
                                 <a href="product_detail.php?id=<?php echo $product['id']; ?>" class="btn btn-primary-custom btn-sm">
                                     <i class="fas fa-eye"></i> View Details

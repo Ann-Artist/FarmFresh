@@ -34,11 +34,7 @@ $products = $stmt->get_result();
                 <div class="col-md-4 mb-4">
                     <div class="card product-card">
                         <div class="position-relative">
-                            <?php 
-                            $image_path = $product['image'] ? 
-                                "/farmfresh/assets/images/" . $product['image'] : 
-                                "https://via.placeholder.com/400x300?text=" . urlencode($product['name']);
-                            ?>
+                            <?php $image_path = getProductImage($product['image'], $product['name']); ?>
                             <img src="<?php echo $image_path; ?>" class="product-image" alt="<?php echo htmlspecialchars($product['name']); ?>">
                             <?php if ($product['is_organic']): ?>
                                 <span class="product-badge"><i class="fas fa-leaf"></i> Organic</span>

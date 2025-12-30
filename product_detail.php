@@ -44,11 +44,7 @@ $total_reviews = $rating_data['total_reviews'];
         <!-- Product Image -->
         <div class="col-md-6 mb-4">
             <div class="card">
-                <?php 
-                $image_path = $product['image'] ? 
-                    "/farmfresh/assets/images/" . $product['image'] : 
-                    "https://via.placeholder.com/600x450?text=" . urlencode($product['name']);
-                ?>
+                <?php $image_path = getProductImage($product['image'], $product['name']); ?>
                 <img src="<?php echo $image_path; ?>" class="img-fluid rounded" alt="<?php echo htmlspecialchars($product['name']); ?>">
                 <?php if ($product['is_organic']): ?>
                     <div class="position-absolute top-0 end-0 m-3">

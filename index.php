@@ -59,11 +59,7 @@ $featured_result = $conn->query($featured_sql);
                     <div class="col-md-4 mb-4">
                         <div class="card product-card">
                             <div class="position-relative">
-                                <?php 
-                                $image_path = $product['image'] ? 
-                                    "/farmfresh/assets/images/" . $product['image'] : 
-                                    "https://via.placeholder.com/400x300?text=No+Image";
-                                ?>
+                                <?php $image_path = getProductImage($product['image'], $product['name']); ?>
                                 <img src="<?php echo $image_path; ?>" class="product-image" alt="<?php echo htmlspecialchars($product['name']); ?>">
                                 <?php if ($product['is_organic']): ?>
                                     <span class="product-badge"><i class="fas fa-leaf"></i> Organic</span>
@@ -74,8 +70,11 @@ $featured_result = $conn->query($featured_sql);
                                 <p class="text-muted mb-2">
                                     <i class="fas fa-user"></i> <?php echo htmlspecialchars($product['farmer_name']); ?>
                                 </p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="product-price"><?php echo formatPrice($product['price']); ?>/<?php echo $product['unit']; ?></span>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="product-price"><?php echo formatPrice($product['price']); ?></span>
+                                    <small class="text-muted">/<?php echo $product['unit']; ?></small>
+                                </div>
+                                <div class="d-grid">
                                     <a href="product_detail.php?id=<?php echo $product['id']; ?>" class="btn btn-primary-custom">
                                         View Details
                                     </a>

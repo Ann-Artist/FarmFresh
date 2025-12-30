@@ -24,9 +24,13 @@ body {
 
 /* Navigation */
 .navbar {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 1rem 0;
+    top: 0;                 /* ADD THIS */
+    width: 100%;            /* ADD THIS */
+    z-index: 1000;          /* ADD THIS */
+
+    background: linear-gradient(70deg, var(--dark-color), var(--secondary-color));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    padding: 0.5rem 0;
 }
 
 .navbar-brand {
@@ -50,7 +54,7 @@ body {
 }
 
 .nav-link:hover {
-    color: white !important;
+    color: black !important;
     transform: translateY(-2px);
 }
 
@@ -69,11 +73,15 @@ body {
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(rgba(46, 204, 113, 0.9), rgba(39, 174, 96, 0.9)),
+    background: linear-gradient(rgba(46, 204, 113, 0.9), rgba(39, 174, 96, 0.6)),
                 url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600') center/cover;
     color: white;
     padding: 100px 0;
     text-align: center;
+
+    min-height: 90vh;        /* ADD / CHANGE THIS */
+    display: flex;          /* ADD */
+    align-items: center;    /* ADD */
 }
 
 .hero-section h1 {
@@ -102,7 +110,9 @@ body {
 
 .btn-hero:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid white;
+    border-radius: 50px;
 }
 
 /* Features Section */
@@ -143,9 +153,6 @@ body {
     transition: all 0.3s ease;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     height: 100%;
-    background: white;
-    display: flex;
-    flex-direction: column;
 }
 
 .product-card:hover {
@@ -157,7 +164,6 @@ body {
     width: 100%;
     height: 250px;
     object-fit: cover;
-    background: #f5f5f5;
 }
 
 .product-badge {
@@ -166,17 +172,13 @@ body {
     right: 10px;
     background: var(--success-color);
     color: white;
-    padding: 5px 10px;
+    padding: 5px 15px;
     border-radius: 20px;
-    font-size: 0.6rem;
-    z-index: 1;
+    font-size: 0.9rem;
 }
 
 .product-info {
     padding: 20px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
 }
 
 .product-title {
@@ -184,30 +186,13 @@ body {
     font-weight: bold;
     color: var(--dark-color);
     margin-bottom: 10px;
-    min-height: 40px;
 }
 
 .product-price {
     font-size: 1.5rem;
+    color: var(--primary-color);
     font-weight: bold;
-    color: #1f7a4d;
 }
-
-.product-price-wrapper {
-    margin-top: 5px;
-}
-
-.product-availability {
-    margin-top: 6px;
-    display: inline-block;
-    background: #dcf5e7;   /* neutral background */
-    color: #2c3e50;        /* dark text */
-    padding: 1px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
 
 .product-rating {
     color: var(--accent-color);
@@ -229,6 +214,7 @@ body {
     background: var(--secondary-color);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+    color: white;
 }
 
 /* Forms */

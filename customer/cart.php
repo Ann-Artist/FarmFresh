@@ -46,11 +46,7 @@ $total = $subtotal + $delivery_charge;
                     <div class="cart-item">
                         <div class="row align-items-center">
                             <div class="col-md-2">
-                                <?php 
-                                $image_path = $item['image'] ? 
-                                    "/farmfresh/assets/images/" . $item['image'] : 
-                                    "https://via.placeholder.com/100x100?text=No+Image";
-                                ?>
+                                <?php $image_path = getProductImage($item['image'], $item['name']); ?>
                                 <img src="<?php echo $image_path; ?>" class="img-fluid rounded" alt="<?php echo htmlspecialchars($item['name']); ?>">
                             </div>
                             <div class="col-md-4">
