@@ -247,7 +247,6 @@ Update SMTP settings in respective files for email notifications
 - Use prepared statements (already implemented)
 
 ## Support & Documentation
-- **Project Synopsis**: See `final project symposis.pdf`
 - **Bootstrap Docs**: https://getbootstrap.com/
 - **PHP Manual**: https://www.php.net/manual/
 - **MySQL Docs**: https://dev.mysql.com/doc/
@@ -262,20 +261,13 @@ As mentioned in the project synopsis:
 - Payment gateway integration
 
 ## Credits
-**Developed by Group 07**
-- Lakhan Uddhav Ashtekar (Roll No. 16)
-- Ajit Dadasaheb Jarande (Roll No. 19)
-- Rushikesh Pandurang Kende (Roll No. 24)
-- Shubham Satish Vanave (Roll No. 41)
+**Developed by:**
+- Anusha Randive
+- Anuj Sanap
 
-**Guide**: Mrs. P.A. Ternikar
-
-**Institute**: Pimpri Chinchwad Polytechnic
-Department of Information Technology
-Academic Year 2025-26 (ODD SEM)
 
 ## License
-Educational project for academic purposes.
+Educational project.
 
 ---
 
