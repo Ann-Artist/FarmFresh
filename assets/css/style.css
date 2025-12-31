@@ -24,9 +24,13 @@ body {
 
 /* Navigation */
 .navbar {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 1rem 0;
+    top: 0;                 /* ADD THIS */
+    width: 100%;            /* ADD THIS */
+    z-index: 1000;          /* ADD THIS */
+
+    background: linear-gradient(70deg, var(--dark-color), var(--secondary-color));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    padding: 0.5rem 0;
 }
 
 .navbar-brand {
@@ -50,7 +54,7 @@ body {
 }
 
 .nav-link:hover {
-    color: white !important;
+    color: black !important;
     transform: translateY(-2px);
 }
 
@@ -69,24 +73,28 @@ body {
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(rgba(46, 204, 113, 0.9), rgba(39, 174, 96, 0.9)),
+    background: linear-gradient(rgba(46, 204, 113, 0.9), rgba(39, 174, 96, 0.6)),
                 url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600') center/cover;
     color: white;
     padding: 100px 0;
     text-align: center;
+
+    min-height: 90vh;        /* ADD / CHANGE THIS */
+    display: flex;          /* ADD */
+    align-items: center;    /* ADD */
 }
 
 .hero-section h1 {
-    font-size: 3.5rem;
+    font-size: 5rem;
     font-weight: bold;
-    margin-bottom: 20px;
-    animation: fadeInDown 1s;
+    margin-bottom: 15px;
+    animation: fadeInDown 2s;
 }
 
 .hero-section p {
-    font-size: 1.3rem;
-    margin-bottom: 30px;
-    animation: fadeInUp 1s;
+    font-size: 1.8rem;
+    margin-bottom: 50px;
+    animation: fadeInUp 2s;
 }
 
 .btn-hero {
@@ -97,12 +105,14 @@ body {
     border-radius: 50px;
     font-weight: bold;
     transition: all 0.3s ease;
-    animation: fadeIn 1.5s;
+    animation: fadeIn 2s;
 }
 
 .btn-hero:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid white;
+    border-radius: 50px;
 }
 
 /* Features Section */

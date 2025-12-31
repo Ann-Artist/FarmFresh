@@ -70,9 +70,12 @@ function showNotification(message, type = 'success') {
 
 // Update quantity in cart
 function updateQuantity(cartId, quantity) {
-    if (quantity < 1) return;
+    if (quantity < 1) {
+        showNotification('Quantity must be at least 1', 'error');
+        return;
+    }
     
-    fetch('customer/update_cart.php', {
+    fetch('/farmfresh/customer/update_cart.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `cart_id=${cartId}&quantity=${quantity}`
@@ -80,47 +83,68 @@ function updateQuantity(cartId, quantity) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            showNotification('Cart updated successfully', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(data.message || 'Failed to update cart', 'error');
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error updating cart', 'error');
     });
 }
 
 // Remove from cart
 function removeFromCart(cartId) {
-    if (confirm('Remove this item from cart?')) {
-        fetch('customer/remove_from_cart.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `cart_id=${cartId}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification('Item removed from cart', 'success');
-                location.reload();
-            }
-        });
+    if (!confirm('Remove this item from cart?')) {
+        return;
     }
+    
+    fetch('/farmfresh/customer/remove_from_cart.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `cart_id=${cartId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Item removed from cart', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(data.message || 'Failed to remove item', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error removing item', 'error');
+    });
 }
 
 // Delete product (farmer)
 function deleteProduct(productId) {
-    if (confirm('Are you sure you want to delete this product?')) {
-        fetch('delete_product.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `product_id=${productId}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification('Product deleted successfully', 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showNotification('Error deleting product', 'error');
-            }
-        });
+    if (!confirm('Are you sure you want to delete this product? This will not affect past orders.')) {
+        return;
     }
+    
+    fetch('/farmfresh/farmer/delete_product.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `product_id=${productId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Product deleted successfully', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.message || 'Error deleting product', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error deleting product', 'error');
+    });
 }
 
 // Image preview

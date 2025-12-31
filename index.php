@@ -13,8 +13,8 @@ $featured_result = $conn->query($featured_sql);
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
-        <h1>Fresh Organic Produce</h1>
-        <p>Directly from Farmers to Your Doorstep</p>
+        <h1>Eat Fresh. Live Better.</h1>
+        <p>Organic produce harvested straight from trusted local farms</p>
         <a href="products.php" class="btn btn-hero">Shop Now</a>
     </div>
 </section>

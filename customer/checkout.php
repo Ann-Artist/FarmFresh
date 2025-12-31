@@ -58,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             // Add order items
             foreach ($items as $item) {
-                $item_stmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, farmer_id, quantity, price) VALUES (?, ?, ?, ?, ?)");
-                $item_stmt->bind_param("iiiid", $order_id, $item['product_id'], $item['farmer_id'], $item['quantity'], $item['price']);
+                $item_stmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, farmer_id, quantity, price, product_name) VALUES (?, ?, ?, ?, ?, ?)");
+                $item_stmt->bind_param("iiiids", $order_id, $item['product_id'], $item['farmer_id'], $item['quantity'], $item['price'], $item['name']);
                 $item_stmt->execute();
                 
                 // Update product stock

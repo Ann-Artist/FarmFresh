@@ -63,12 +63,12 @@ $total = $subtotal + $delivery_charge;
                             <div class="col-md-2">
                                 <div class="input-group input-group-sm">
                                     <button class="btn btn-outline-secondary" type="button" 
-                                            onclick="updateQuantity(<?php echo $item['id']; ?>, <?php echo $item['quantity'] - 1; ?>)">
+                                            onclick="updateCartQuantity(<?php echo $item['id']; ?>, <?php echo max(1, $item['quantity'] - 1); ?>)">
                                         <i class="fas fa-minus"></i>
                                     </button>
                                     <input type="text" class="form-control text-center" value="<?php echo $item['quantity']; ?>" readonly>
                                     <button class="btn btn-outline-secondary" type="button" 
-                                            onclick="updateQuantity(<?php echo $item['id']; ?>, <?php echo $item['quantity'] + 1; ?>)"
+                                            onclick="updateCartQuantity(<?php echo $item['id']; ?>, <?php echo $item['quantity'] + 1; ?>)"
                                             <?php echo $item['quantity'] >= $item['stock'] ? 'disabled' : ''; ?>>
                                         <i class="fas fa-plus"></i>
                                     </button>
@@ -77,7 +77,7 @@ $total = $subtotal + $delivery_charge;
                             <div class="col-md-2 text-end">
                                 <strong class="text-success"><?php echo formatPrice($item['price'] * $item['quantity']); ?></strong>
                                 <br>
-                                <button onclick="removeFromCart(<?php echo $item['id']; ?>)" class="btn btn-sm btn-outline-danger mt-2">
+                                <button onclick="removeCartItem(<?php echo $item['id']; ?>)" class="btn btn-sm btn-outline-danger mt-2">
                                     <i class="fas fa-trash"></i> Remove
                                 </button>
                             </div>
@@ -130,5 +130,72 @@ $total = $subtotal + $delivery_charge;
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+// Cart update function
+function updateCartQuantity(cartId, quantity) {
+    if (quantity < 1) {
+        alert('Quantity must be at least 1');
+        return;
+    }
+    
+    // Show loading
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    
+    fetch('update_cart.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'cart_id=' + cartId + '&quantity=' + quantity
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to update cart');
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating cart. Please try again.');
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    });
+}
+
+// Cart remove function
+function removeCartItem(cartId) {
+    if (!confirm('Are you sure you want to remove this item from cart?')) {
+        return;
+    }
+    
+    fetch('remove_from_cart.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'cart_id=' + cartId
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to remove item');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error removing item. Please try again.');
+    });
+}
+</script>
 
 <?php include '../includes/footer.php'; ?>
