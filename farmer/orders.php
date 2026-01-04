@@ -9,6 +9,34 @@ if (!isFarmer()) {
 }
 
 $farmer_id = $_SESSION['user_id'];
+$success = '';
+$error = '';
+
+// Handle order status update
+if (isset($_POST['update_status'])) {
+    $order_id = (int)$_POST['order_id'];
+    $new_status = clean($_POST['order_status']);
+    
+    // Verify this order contains farmer's products
+    $verify_sql = "SELECT DISTINCT o.id FROM orders o 
+                   JOIN order_items oi ON o.id = oi.order_id 
+                   WHERE o.id = ? AND oi.farmer_id = ?";
+    $verify_stmt = $conn->prepare($verify_sql);
+    $verify_stmt->bind_param("ii", $order_id, $farmer_id);
+    $verify_stmt->execute();
+    $verify_result = $verify_stmt->get_result();
+    
+    if ($verify_result->num_rows > 0) {
+        $update_stmt = $conn->prepare("UPDATE orders SET order_status = ? WHERE id = ?");
+        $update_stmt->bind_param("si", $new_status, $order_id);
+        
+        if ($update_stmt->execute()) {
+            $success = 'Order status updated successfully!';
+        } else {
+            $error = 'Failed to update order status';
+        }
+    }
+}
 
 // Get all orders for this farmer's products
 $orders_sql = "SELECT 
@@ -79,6 +107,14 @@ while ($row = $orders_result->fetch_assoc()) {
         </a>
     </div>
     
+    <?php if ($success): ?>
+        <div class="alert alert-success alert-custom"><?php echo $success; ?></div>
+    <?php endif; ?>
+    
+    <?php if ($error): ?>
+        <div class="alert alert-danger alert-custom"><?php echo $error; ?></div>
+    <?php endif; ?>
+    
     <?php if (count($orders) > 0): ?>
         <div class="row">
             <?php foreach ($orders as $order): ?>
@@ -140,6 +176,22 @@ while ($row = $orders_result->fetch_assoc()) {
                                         </tfoot>
                                     </table>
                                 </div>
+                                
+                                <!-- Order Status Update Form -->
+                                <form method="POST" class="mt-3">
+                                    <input type="hidden" name="order_id" value="<?php echo $order['order_id']; ?>">
+                                    <label class="form-label"><strong>Update Order Status:</strong></label>
+                                    <select class="form-control form-control-sm mb-2" name="order_status">
+                                        <option value="pending" <?php echo $order['order_status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                        <option value="processing" <?php echo $order['order_status'] === 'processing' ? 'selected' : ''; ?>>Processing</option>
+                                        <option value="shipped" <?php echo $order['order_status'] === 'shipped' ? 'selected' : ''; ?>>Shipped</option>
+                                        <option value="delivered" <?php echo $order['order_status'] === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
+                                        <option value="cancelled" <?php echo $order['order_status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                                    </select>
+                                    <button type="submit" name="update_status" class="btn btn-primary-custom btn-sm w-100">
+                                        <i class="fas fa-sync"></i> Update Status
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>

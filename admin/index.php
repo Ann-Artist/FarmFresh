@@ -35,6 +35,10 @@ $stats['total_orders'] = $conn->query($orders_sql)->fetch_assoc()['count'];
 $revenue_sql = "SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'completed'";
 $stats['total_revenue'] = $conn->query($revenue_sql)->fetch_assoc()['total'] ?? 0;
 
+// Pending payments
+$pending_payments_sql = "SELECT COUNT(*) as count FROM orders WHERE payment_status = 'pending' AND payment_method != 'cod'";
+$stats['pending_payments'] = $conn->query($pending_payments_sql)->fetch_assoc()['count'];
+
 // Recent users
 $recent_users_sql = "SELECT * FROM users WHERE user_type != 'admin' ORDER BY created_at DESC LIMIT 5";
 $recent_users = $conn->query($recent_users_sql);
@@ -105,6 +109,11 @@ $recent_orders = $conn->query($recent_orders_sql);
                     <a href="manage_orders.php" class="btn btn-outline-success">
                         <i class="fas fa-shopping-bag"></i> Manage Orders
                     </a>
+                    <?php if ($stats['pending_payments'] > 0): ?>
+                        <a href="verify_payments.php" class="btn btn-warning">
+                            <i class="fas fa-check-circle"></i> Verify Payments (<?php echo $stats['pending_payments']; ?>)
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

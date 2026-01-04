@@ -82,15 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="text-center">
                     <p class="text-muted">Don't have an account? <a href="register.php">Register here</a></p>
                 </div>
-                
-                <hr>
-                
-                <div class="text-center">
-                    <h6 class="text-muted">Demo Accounts:</h6>
-                    <p class="small mb-1"><strong>Admin:</strong> admin@farmfresh.com / admin123</p>
-                    <p class="small mb-1"><strong>Farmer:</strong> farmer@example.com / farmer123</p>
-                    <p class="small"><strong>Customer:</strong> customer@example.com / customer123</p>
-                </div>
             </div>
         </div>
     </div>

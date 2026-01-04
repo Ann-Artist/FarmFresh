@@ -42,6 +42,9 @@ $total = $subtotal + $delivery_charge;
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $delivery_address = clean($_POST['delivery_address']);
     $payment_method = clean($_POST['payment_method']);
+    $payment_id = isset($_POST['payment_id']) ? clean($_POST['payment_id']) : null;
+    $payment_signature = isset($_POST['payment_signature']) ? clean($_POST['payment_signature']) : null;
+    $payment_status = isset($_POST['payment_status']) ? clean($_POST['payment_status']) : 'pending';
     
     if (empty($delivery_address)) {
         $error = 'Please provide delivery address';
@@ -51,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         try {
             // Create order
-            $order_stmt = $conn->prepare("INSERT INTO orders (customer_id, total_amount, payment_method, delivery_address) VALUES (?, ?, ?, ?)");
-            $order_stmt->bind_param("idss", $customer_id, $total, $payment_method, $delivery_address);
+            $order_stmt = $conn->prepare("INSERT INTO orders (customer_id, total_amount, payment_method, payment_id, payment_signature, payment_status, delivery_address) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $order_stmt->bind_param("idsssss", $customer_id, $total, $payment_method, $payment_id, $payment_signature, $payment_status, $delivery_address);
             $order_stmt->execute();
             $order_id = $conn->insert_id;
             
@@ -76,7 +79,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Commit transaction
             $conn->commit();
             
-            header('Location: order_success.php?order_id=' . $order_id);
+            // Redirect based on payment method
+            if ($payment_method === 'cod') {
+                header('Location: order_success.php?order_id=' . $order_id);
+            } else {
+                // For online payment, redirect to QR payment page
+                header('Location: qr_payment.php?order_id=' . $order_id);
+            }
             exit();
             
         } catch (Exception $e) {
@@ -125,10 +134,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     <div class="mb-3">
                         <label class="form-label">Payment Method *</label>
-                        <select class="form-control" name="payment_method" required>
-                            <option value="cod">Cash on Delivery</option>
-                            <option value="online">Online Payment (Demo)</option>
-                        </select>
+                        <div class="payment-methods">
+                            <div class="form-check mb-3 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="payment_method" id="online" value="online" checked>
+                                <label class="form-check-label w-100" for="online">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-qrcode fa-2x text-primary me-3"></i>
+                                        <div>
+                                            <strong>UPI / Online Payment</strong>
+                                            <p class="small text-muted mb-0">Pay via QR code - PhonePe, Paytm, Google Pay, BHIM</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod">
+                                <label class="form-check-label w-100" for="cod">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-money-bill-wave fa-2x text-success me-3"></i>
+                                        <div>
+                                            <strong>Cash on Delivery</strong>
+                                            <p class="small text-muted mb-0">Pay when you receive the order</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     
                     <button type="submit" class="btn btn-primary-custom btn-lg w-100">
