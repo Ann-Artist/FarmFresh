@@ -117,8 +117,11 @@ if (isset($_POST['change_password'])) {
                     <div class="row">
                         <div class="col-md-12 mb-3 text-center">
                             <div class="profile-image-container mb-3">
-                                <?php if ($user['profile_image']): ?>
-                                    <img src="assets/images/<?php echo $user['profile_image']; ?>" id="profilePreview" class="profile-image-large">
+                                <?php 
+                                $profile_img_path = 'assets/images/' . ($user['profile_image'] ?? '');
+                                if ($user['profile_image'] && file_exists($profile_img_path)): 
+                                ?>
+                                    <img src="<?php echo $profile_img_path; ?>" id="profilePreview" class="profile-image-large">
                                 <?php else: ?>
                                     <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['name']); ?>&size=150&background=2ecc71&color=fff" id="profilePreview" class="profile-image-large">
                                 <?php endif; ?>
