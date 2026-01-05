@@ -34,12 +34,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Hash password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             
+            // Set approval status based on user type
+            $approval_status = ($user_type === 'farmer') ? 'pending' : 'approved';
+            
             // Insert user
-            $stmt = $conn->prepare("INSERT INTO users (name, email, password, phone, address, user_type) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssss", $name, $email, $hashed_password, $phone, $address, $user_type);
+            $stmt = $conn->prepare("INSERT INTO users (name, email, password, phone, address, user_type, approval_status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssssss", $name, $email, $hashed_password, $phone, $address, $user_type, $approval_status);
             
             if ($stmt->execute()) {
-                header('Location: login.php?registered=1');
+                if ($user_type === 'farmer') {
+                    header('Location: login.php?registered=farmer_pending');
+                } else {
+                    header('Location: login.php?registered=1');
+                }
                 exit();
             } else {
                 $error = 'Registration failed. Please try again.';
@@ -95,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Register As *</label>
-                            <select class="form-control" name="user_type" required>
+                            <select class="form-control" name="user_type" required id="userType">
                                 <option value="">Select Type</option>
                                 <option value="farmer">Farmer</option>
                                 <option value="customer">Customer</option>
@@ -106,6 +113,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="mb-3">
                         <label class="form-label">Address</label>
                         <textarea class="form-control" name="address" rows="3"></textarea>
+                    </div>
+                    
+                    <!-- Farmer approval notice -->
+                    <div class="alert alert-info" id="farmerNotice" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note for Farmers:</strong> Your account will be pending approval by admin. You'll be able to login once approved.
                     </div>
                     
                     <button type="submit" class="btn btn-primary-custom w-100 mb-3">
@@ -120,5 +133,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('userType').addEventListener('change', function() {
+    const farmerNotice = document.getElementById('farmerNotice');
+    if (this.value === 'farmer') {
+        farmerNotice.style.display = 'block';
+    } else {
+        farmerNotice.style.display = 'none';
+    }
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>

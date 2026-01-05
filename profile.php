@@ -32,21 +32,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($check_result->num_rows > 0) {
             $error = 'Email already in use by another account';
         } else {
+
             // Handle profile image upload
             $profile_image = $user['profile_image'];
-            if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == 0) {
-                $upload_result = uploadImage($_FILES['profile_image']);
-                if ($upload_result['success']) {
-                    // Delete old image
-                    if ($user['profile_image']) {
-                        $old_image = 'assets/images/' . $user['profile_image'];
-                        if (file_exists($old_image)) {
-                            unlink($old_image);
-                        }
-                    }
-                    $profile_image = $upload_result['filename'];
-                }
+
+if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == 0) {
+    $upload_result = uploadProfileImage($_FILES['profile_image']);
+
+    if ($upload_result['success']) {
+        // Delete old image
+        if ($user['profile_image']) {
+            $old_image = 'assets/images/' . $user['profile_image'];
+            if (file_exists($old_image)) {
+                unlink($old_image);
             }
+        }
+        $profile_image = $upload_result['filename'];
+    }
+}
             
             // Update profile
             $update_stmt = $conn->prepare("UPDATE users SET name = ?, email = ?, phone = ?, address = ?, pincode = ?, city = ?, state = ?, profile_image = ? WHERE id = ?");

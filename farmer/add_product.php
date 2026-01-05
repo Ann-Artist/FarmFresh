@@ -38,11 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         if (!$error) {
-            $stmt = $conn->prepare("INSERT INTO products (farmer_id, name, category, description, price, quantity, unit, image, is_organic, certification, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'available')");
+            $stmt = $conn->prepare("INSERT INTO products (farmer_id, name, category, description, price, quantity, unit, image, is_organic, certification, status, approval_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'available', 'pending')");
             $stmt->bind_param("isssdissss", $farmer_id, $name, $category, $description, $price, $quantity, $unit, $image_name, $is_organic, $certification);
             
             if ($stmt->execute()) {
-                $success = 'Product added successfully!';
+                $success = 'Product added successfully! It will be visible once approved by admin.';
                 // Clear form
                 $_POST = array();
             } else {

@@ -99,6 +99,47 @@ function getProductImage($image, $product_name = 'Product') {
     return "/farmfresh/assets/images/" . $image;
 }
 
+
+
+// Upload profile image (separate from product images)
+function uploadProfileImage($file) {
+    $target_dir = '../assets/images/profile_imgs/';
+
+    // Create directory if not exists
+    if (!file_exists($target_dir)) {
+        mkdir($target_dir, 0755, true);
+    }
+
+    $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp'];
+
+    if (!in_array($file_extension, $allowed_extensions)) {
+        return ['success' => false, 'message' => 'Invalid file type'];
+    }
+
+    // Max 2MB
+    if ($file['size'] > 2 * 1024 * 1024) {
+        return ['success' => false, 'message' => 'Image must be under 2MB'];
+    }
+
+    $new_filename = 'profile_' . uniqid() . '.' . $file_extension;
+    $target_file = $target_dir . $new_filename;
+
+    if (move_uploaded_file($file['tmp_name'], $target_file)) {
+        return [
+            'success' => true,
+            // store relative path in DB
+            'filename' => 'profile_imgs/' . $new_filename
+        ];
+    }
+
+    return ['success' => false, 'message' => 'Upload failed'];
+}
+
+
+
+
+
 // Time ago function
 function timeAgo($timestamp) {
     $time = strtotime($timestamp);

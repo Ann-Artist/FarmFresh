@@ -20,23 +20,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($result->num_rows == 1) {
             $user = $result->fetch_assoc();
             if (password_verify($password, $user['password'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_type'] = $user['user_type'];
-                $_SESSION['user_name'] = $user['name'];
                 
-                // Redirect based on user type
-                switch ($user['user_type']) {
-                    case 'admin':
-                        header('Location: admin/index.php');
-                        break;
-                    case 'farmer':
-                        header('Location: farmer/dashboard.php');
-                        break;
-                    case 'customer':
-                        header('Location: customer/dashboard.php');
-                        break;
+                // Check approval status for farmers
+                if ($user['user_type'] === 'farmer' && $user['approval_status'] !== 'approved') {
+                    if ($user['approval_status'] === 'pending') {
+                        $error = 'Your farmer account is pending admin approval. Please wait for approval.';
+                    } elseif ($user['approval_status'] === 'rejected') {
+                        $error = 'Your farmer account has been rejected. Reason: ' . ($user['rejection_reason'] ?? 'Not specified');
+                    }
+                } else {
+                    // Login successful
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['user_type'] = $user['user_type'];
+                    $_SESSION['user_name'] = $user['name'];
+                    
+                    // Redirect based on user type
+                    switch ($user['user_type']) {
+                        case 'admin':
+                            header('Location: admin/index.php');
+                            break;
+                        case 'farmer':
+                            header('Location: farmer/dashboard.php');
+                            break;
+                        case 'customer':
+                            header('Location: customer/dashboard.php');
+                            break;
+                    }
+                    exit();
                 }
-                exit();
             } else {
                 $error = 'Invalid password';
             }
@@ -59,8 +70,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="alert alert-danger alert-custom"><?php echo $error; ?></div>
                 <?php endif; ?>
                 
-                <?php if (isset($_GET['registered'])): ?>
-                    <div class="alert alert-success alert-custom">Registration successful! Please login.</div>
+                <?php if (isset($_GET['registered']) && $_GET['registered'] == '1'): ?>
+                    <div class="alert alert-success alert-custom">
+                        Registration successful! Please login.
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (isset($_GET['registered']) && $_GET['registered'] == 'farmer_pending'): ?>
+                    <div class="alert alert-info alert-custom">
+                        <strong>Registration Successful!</strong><br>
+                        Your farmer account is pending admin approval. You'll receive notification once approved.
+                    </div>
                 <?php endif; ?>
                 
                 <form method="POST" action="">

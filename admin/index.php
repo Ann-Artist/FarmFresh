@@ -31,6 +31,14 @@ $stats['total_products'] = $conn->query($products_sql)->fetch_assoc()['count'];
 $orders_sql = "SELECT COUNT(*) as count FROM orders";
 $stats['total_orders'] = $conn->query($orders_sql)->fetch_assoc()['count'];
 
+// Pending farmers
+$pending_farmers_sql = "SELECT COUNT(*) as count FROM users WHERE user_type = 'farmer' AND approval_status = 'pending'";
+$stats['pending_farmers'] = $conn->query($pending_farmers_sql)->fetch_assoc()['count'];
+
+// Pending products
+$pending_products_sql = "SELECT COUNT(*) as count FROM products WHERE approval_status = 'pending'";
+$stats['pending_products'] = $conn->query($pending_products_sql)->fetch_assoc()['count'];
+
 // Total revenue
 $revenue_sql = "SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'completed'";
 $stats['total_revenue'] = $conn->query($revenue_sql)->fetch_assoc()['total'] ?? 0;
@@ -94,6 +102,33 @@ $recent_orders = $conn->query($recent_orders_sql);
         </div>
     </div>
     
+
+<!-- Pending Approvals -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+            <i class="fas fa-user-clock fa-3x mb-3"></i>
+            <div class="stat-number"><?php echo $stats['pending_farmers']; ?></div>
+            <div class="stat-label">Pending Farmer Approvals</div>
+            <?php if ($stats['pending_farmers'] > 0): ?>
+                <a href="approve_farmers.php" class="btn btn-light btn-sm mt-3">Review Now</a>
+            <?php endif; ?>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
+            <i class="fas fa-box-open fa-3x mb-3"></i>
+            <div class="stat-number"><?php echo $stats['pending_products']; ?></div>
+            <div class="stat-label">Pending Product Approvals</div>
+            <?php if ($stats['pending_products'] > 0): ?>
+                <a href="approve_products.php" class="btn btn-light btn-sm mt-3">Review Now</a>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+
+
     <!-- Quick Actions -->
     <div class="row mb-4">
         <div class="col-12">
@@ -114,6 +149,16 @@ $recent_orders = $conn->query($recent_orders_sql);
                             <i class="fas fa-check-circle"></i> Verify Payments (<?php echo $stats['pending_payments']; ?>)
                         </a>
                     <?php endif; ?>
+<?php if ($stats['pending_farmers'] > 0): ?>
+    <a href="approve_farmers.php" class="btn btn-danger">
+        <i class="fas fa-user-check"></i> Approve Farmers (<?php echo $stats['pending_farmers']; ?>)
+    </a>
+<?php endif; ?>
+<?php if ($stats['pending_products'] > 0): ?>
+    <a href="approve_products.php" class="btn btn-warning">
+        <i class="fas fa-check-square"></i> Approve Products (<?php echo $stats['pending_products']; ?>)
+    </a>
+<?php endif; ?>
                 </div>
             </div>
         </div>

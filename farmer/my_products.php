@@ -50,6 +50,29 @@ $products = $stmt->get_result();
                                 <span class="badge <?php echo $product['status'] === 'available' ? 'bg-success' : 'bg-danger'; ?>">
                                     <?php echo ucfirst($product['status']); ?>
                                 </span>
+
+<!-- ADD THIS: -->
+<span class="badge 
+    <?php 
+        echo $product['approval_status'] === 'approved' ? 'bg-success' : 
+             ($product['approval_status'] === 'pending' ? 'bg-warning text-dark' : 'bg-danger'); 
+    ?>">
+    <?php echo ucfirst($product['approval_status']); ?>
+</span>
+
+<?php if ($product['approval_status'] === 'pending'): ?>
+    <div class="alert alert-warning small mt-2">
+        <i class="fas fa-clock"></i> Pending admin approval
+    </div>
+<?php elseif ($product['approval_status'] === 'rejected'): ?>
+    <div class="alert alert-danger small mt-2">
+        <i class="fas fa-times-circle"></i> Rejected
+        <?php if ($product['rejection_reason']): ?>
+            <br><small><?php echo htmlspecialchars($product['rejection_reason']); ?></small>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
+
                             </div>
                             <p class="small mb-3">
                                 <strong>Stock:</strong> <?php echo $product['quantity']; ?> <?php echo $product['unit']; ?>

@@ -9,7 +9,7 @@ $category = isset($_GET['category']) ? clean($_GET['category']) : '';
 // Build query
 $sql = "SELECT p.*, u.name as farmer_name FROM products p 
         JOIN users u ON p.farmer_id = u.id 
-        WHERE p.status = 'available'";
+        WHERE p.status = 'available' AND p.approval_status = 'approved'";
 
 if ($search) {
     $sql .= " AND (p.name LIKE '%$search%' OR p.description LIKE '%$search%')";

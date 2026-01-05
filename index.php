@@ -4,9 +4,11 @@ include 'includes/header.php';
 
 // Get featured products
 $featured_sql = "SELECT p.*, u.name as farmer_name FROM products p 
-                 JOIN users u ON p.farmer_id = u.id 
-                 WHERE p.status = 'available' 
+        	 JOIN users u ON p.farmer_id = u.id 
+	         WHERE p.status = 'available' AND p.approval_status = 'approved'
                  ORDER BY p.created_at DESC LIMIT 6";
+
+
 $featured_result = $conn->query($featured_sql);
 ?>
 
