@@ -1,23 +1,13 @@
 <?php
+// FREE VERSION - No API Key Required!
+// Uses OpenStreetMap and browser geolocation
 $page_title = "Select Delivery Location";
 include 'includes/header.php';
-require_once __DIR__ . '/config/google_maps.php';
 
 requireLogin();
 if (!isCustomer()) {
     header('Location: index.php');
     exit();
-}
-
-// If no Google Maps API key, redirect to free version
-if (!HAS_GOOGLE_MAPS_KEY) {
-    // You can either redirect to free version or show a message
-    // Option 1: Redirect to free version (uncomment next 2 lines)
-    // header('Location: select_location_free.php');
-    // exit();
-    
-    // Option 2: Show message (current)
-    $show_free_version = true;
 }
 
 $user_id = $_SESSION['user_id'];
@@ -32,12 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_location'])) {
     $latitude = isset($_POST['latitude']) ? clean($_POST['latitude']) : null;
     $longitude = isset($_POST['longitude']) ? clean($_POST['longitude']) : null;
     
-    // Check if latitude/longitude columns exist, if not just update address fields
     $stmt = $conn->prepare("UPDATE users SET address = ?, pincode = ?, city = ?, state = ? WHERE id = ?");
     $stmt->bind_param("ssssi", $address, $pincode, $city, $state, $user_id);
     
     if ($stmt->execute()) {
-        // Try to update latitude/longitude if columns exist
         if ($latitude && $longitude) {
             $lat_stmt = $conn->prepare("UPDATE users SET latitude = ?, longitude = ? WHERE id = ?");
             $lat_stmt->bind_param("ddi", $latitude, $longitude, $user_id);
@@ -59,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_location'])) {
         <div class="col-md-8">
             <div class="dashboard-card mb-4">
                 <h5 class="mb-3">
-                    <i class="fas fa-map"></i> Search or Select Location on Map
+                    <i class="fas fa-map"></i> Select Your Location
                 </h5>
                 
                 <!-- Get Current Location Button -->
@@ -70,13 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_location'])) {
                     <span id="locationStatus" class="ms-2 text-muted"></span>
                 </div>
                 
-                <!-- Search Box -->
-                <div class="mb-3">
-                    <input type="text" id="pac-input" class="form-control" placeholder="Search for your location...">
-                </div>
-                
                 <!-- Map Container -->
                 <div id="map" style="height: 400px; border-radius: 10px; width: 100%;"></div>
+                <small class="text-muted">Click on the map to select your location</small>
             </div>
             
             <!-- Location Form -->
@@ -168,106 +152,71 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_location'])) {
                 
                 <h6>How It Works</h6>
                 <ol class="small text-muted ps-3">
-                    <li>Click "Use My Current Location" or search on the map</li>
-                    <li>Drag the marker to adjust your location</li>
-                    <li>Confirm your delivery address</li>
-                    <li>See products from nearby farmers</li>
-                    <li>Place your order</li>
+                    <li>Click "Use My Current Location"</li>
+                    <li>Or click on the map to select location</li>
+                    <li>Enter your address details</li>
+                    <li>Confirm and continue</li>
                 </ol>
             </div>
         </div>
     </div>
 </div>
 
-<?php if (HAS_GOOGLE_MAPS_KEY): ?>
-<!-- Google Maps API -->
-<script src="https://maps.googleapis.com/maps/api/js?key=<?php echo GOOGLE_MAPS_API_KEY; ?>&libraries=places"></script>
-<?php else: ?>
-<!-- Using Free OpenStreetMap (No API Key Required) -->
+<!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Nominatim for reverse geocoding (free, no API key) -->
 <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css" />
-<div class="alert alert-warning mb-3">
-    <i class="fas fa-info-circle"></i> 
-    <strong>Note:</strong> Using free OpenStreetMap. 
-    <a href="HOW_TO_GET_API_KEY.md" target="_blank">Get Google Maps API key</a> for enhanced features.
-</div>
-<?php endif; ?>
 
 <script>
-<?php if (HAS_GOOGLE_MAPS_KEY): ?>
-// Google Maps Version
 let map;
 let marker;
 let geocoder;
-let autocomplete;
 let currentLocation = null;
 
-// Initialize map
+// Initialize map using OpenStreetMap (FREE, no API key needed)
 function initMap() {
     // Default location (Pune, India)
-    const defaultLocation = { lat: 18.5204, lng: 73.8567 };
+    const defaultLocation = [18.5204, 73.8567];
     
     // Try to get user's saved location
-    const savedLat = parseFloat(document.getElementById('latitude').value) || defaultLocation.lat;
-    const savedLng = parseFloat(document.getElementById('longitude').value) || defaultLocation.lng;
+    const savedLat = parseFloat(document.getElementById('latitude').value);
+    const savedLng = parseFloat(document.getElementById('longitude').value);
+    const center = (savedLat && savedLng) ? [savedLat, savedLng] : defaultLocation;
     
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: savedLat, lng: savedLng },
-        zoom: 15,
-        mapTypeControl: true,
-        streetViewControl: true,
-        fullscreenControl: true
-    });
+    // Create map
+    map = L.map('map').setView(center, 15);
     
-    geocoder = new google.maps.Geocoder();
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Add geocoder control for searching
+    geocoder = L.Control.Geocoder.nominatim();
     
     // Create marker
-    marker = new google.maps.Marker({
-        map: map,
-        draggable: true,
-        animation: google.maps.Animation.DROP,
-        position: { lat: savedLat, lng: savedLng }
-    });
-    
-    // Initialize autocomplete for search box
-    const input = document.getElementById('pac-input');
-    autocomplete = new google.maps.places.Autocomplete(input);
-    autocomplete.bindTo('bounds', map);
-    
-    // When place is selected from autocomplete
-    autocomplete.addListener('place_changed', function() {
-        const place = autocomplete.getPlace();
-        if (!place.geometry) {
-            return;
-        }
-        
-        if (place.geometry.viewport) {
-            map.fitBounds(place.geometry.viewport);
-        } else {
-            map.setCenter(place.geometry.location);
-            map.setZoom(17);
-        }
-        
-        marker.setPosition(place.geometry.location);
-        updateAddressFromLocation(place.geometry.location);
-    });
+    marker = L.marker(center, { draggable: true }).addTo(map);
     
     // When marker is dragged
-    marker.addListener('dragend', function() {
-        updateAddressFromLocation(marker.getPosition());
+    marker.on('dragend', function() {
+        const pos = marker.getLatLng();
+        updateAddressFromLocation(pos.lat, pos.lng);
     });
     
     // When map is clicked
-    map.addListener('click', function(event) {
-        marker.setPosition(event.latLng);
-        updateAddressFromLocation(event.latLng);
+    map.on('click', function(event) {
+        const pos = event.latlng;
+        marker.setLatLng(pos);
+        updateAddressFromLocation(pos.lat, pos.lng);
     });
     
     // Update address on initial load if coordinates exist
-    if (savedLat !== defaultLocation.lat || savedLng !== defaultLocation.lng) {
-        updateAddressFromLocation({ lat: savedLat, lng: savedLng });
+    if (savedLat && savedLng) {
+        updateAddressFromLocation(savedLat, savedLng);
     }
 }
 
@@ -280,17 +229,14 @@ function getCurrentLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             function(position) {
-                const pos = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
                 
-                currentLocation = pos;
-                map.setCenter(pos);
-                map.setZoom(17);
-                marker.setPosition(pos);
+                currentLocation = [lat, lng];
+                map.setView(currentLocation, 17);
+                marker.setLatLng(currentLocation);
                 
-                updateAddressFromLocation(pos);
+                updateAddressFromLocation(lat, lng);
                 
                 statusElement.textContent = 'Location found!';
                 statusElement.className = 'ms-2 text-success';
@@ -329,160 +275,53 @@ function getCurrentLocation() {
     }
 }
 
-// Update address fields from coordinates
-function updateAddressFromLocation(location) {
-    geocoder.geocode({ location: location }, function(results, status) {
-        if (status === 'OK' && results[0]) {
-            const addressComponents = results[0].address_components;
-            let address = results[0].formatted_address;
-            let pincode = '';
-            let city = '';
-            let state = '';
-            
-            // Extract address components
-            addressComponents.forEach(function(component) {
-                const types = component.types;
-                
-                if (types.includes('postal_code')) {
-                    pincode = component.long_name;
-                }
-                if (types.includes('locality') || types.includes('administrative_area_level_2')) {
-                    city = component.long_name;
-                }
-                if (types.includes('administrative_area_level_1')) {
-                    state = component.long_name;
-                }
-            });
-            
-            // Update form fields
-            document.getElementById('address').value = address;
-            if (pincode) document.getElementById('pincode').value = pincode;
-            if (city) document.getElementById('city').value = city;
-            if (state) {
-                const stateSelect = document.getElementById('state');
-                const options = stateSelect.options;
-                for (let i = 0; i < options.length; i++) {
-                    if (options[i].text === state || options[i].value === state) {
-                        stateSelect.value = options[i].value;
-                        break;
-                    }
-                }
-                // If state not found in dropdown, you might want to add it or use a text input
-            }
-            
-            // Update hidden coordinates
-            document.getElementById('latitude').value = location.lat();
-            document.getElementById('longitude').value = location.lng();
-        } else {
-            console.error('Geocoder failed: ' + status);
-        }
-    });
-}
-
-// Event listener for current location button
-document.getElementById('getCurrentLocation').addEventListener('click', getCurrentLocation);
-
-// Initialize map when page loads
-window.initMap = initMap;
-initMap();
-<?php else: ?>
-// OpenStreetMap Version (Free, No API Key)
-let map;
-let marker;
-let currentLocation = null;
-
-// Initialize map using OpenStreetMap
-function initMap() {
-    const defaultLocation = [18.5204, 73.8567];
-    const savedLat = parseFloat(document.getElementById('latitude').value);
-    const savedLng = parseFloat(document.getElementById('longitude').value);
-    const center = (savedLat && savedLng) ? [savedLat, savedLng] : defaultLocation;
-    
-    map = L.map('map').setView(center, 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
-    
-    marker = L.marker(center, { draggable: true }).addTo(map);
-    
-    marker.on('dragend', function() {
-        const pos = marker.getLatLng();
-        updateAddressFromLocation(pos.lat, pos.lng);
-    });
-    
-    map.on('click', function(event) {
-        const pos = event.latlng;
-        marker.setLatLng(pos);
-        updateAddressFromLocation(pos.lat, pos.lng);
-    });
-    
-    if (savedLat && savedLng) {
-        updateAddressFromLocation(savedLat, savedLng);
-    }
-}
-
-function getCurrentLocation() {
-    const statusElement = document.getElementById('locationStatus');
-    statusElement.textContent = 'Getting your location...';
-    statusElement.className = 'ms-2 text-info';
-    
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                currentLocation = [lat, lng];
-                map.setView(currentLocation, 17);
-                marker.setLatLng(currentLocation);
-                updateAddressFromLocation(lat, lng);
-                statusElement.textContent = 'Location found!';
-                statusElement.className = 'ms-2 text-success';
-                setTimeout(() => { statusElement.textContent = ''; }, 3000);
-            },
-            function(error) {
-                statusElement.textContent = 'Unable to get location. Please allow location access.';
-                statusElement.className = 'ms-2 text-danger';
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    } else {
-        statusElement.textContent = 'Geolocation not supported.';
-        statusElement.className = 'ms-2 text-danger';
-    }
-}
-
+// Update address fields from coordinates using Nominatim (free reverse geocoding)
 function updateAddressFromLocation(lat, lng) {
+    // Update hidden coordinates
     document.getElementById('latitude').value = lat;
     document.getElementById('longitude').value = lng;
     
+    // Use Nominatim for reverse geocoding (free, no API key)
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
         .then(response => response.json())
         .then(data => {
             if (data && data.address) {
                 const addr = data.address;
-                document.getElementById('address').value = data.display_name || '';
-                if (addr.postcode) document.getElementById('pincode').value = addr.postcode;
-                if (addr.city || addr.town || addr.village) {
-                    document.getElementById('city').value = addr.city || addr.town || addr.village;
-                }
-                if (addr.state) {
+                let address = data.display_name || '';
+                let pincode = addr.postcode || '';
+                let city = addr.city || addr.town || addr.village || addr.county || '';
+                let state = addr.state || '';
+                
+                // Update form fields
+                document.getElementById('address').value = address;
+                if (pincode) document.getElementById('pincode').value = pincode;
+                if (city) document.getElementById('city').value = city;
+                if (state) {
                     const stateSelect = document.getElementById('state');
-                    for (let i = 0; i < stateSelect.options.length; i++) {
-                        if (stateSelect.options[i].text === addr.state) {
-                            stateSelect.value = stateSelect.options[i].value;
+                    const options = stateSelect.options;
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i].text === state || options[i].value === state) {
+                            stateSelect.value = options[i].value;
                             break;
                         }
                     }
                 }
             }
         })
-        .catch(error => console.error('Geocoding error:', error));
+        .catch(error => {
+            console.error('Geocoding error:', error);
+            // Still update coordinates even if address lookup fails
+        });
 }
 
+// Event listener for current location button
 document.getElementById('getCurrentLocation').addEventListener('click', getCurrentLocation);
-window.addEventListener('DOMContentLoaded', initMap);
-<?php endif; ?>
+
+// Initialize map when page loads
+window.addEventListener('DOMContentLoaded', function() {
+    initMap();
+});
 </script>
 
 <?php include 'includes/footer.php'; ?>
+

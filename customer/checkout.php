@@ -1,6 +1,7 @@
 <?php
 $page_title = "Checkout";
 include '../includes/header.php';
+require_once __DIR__ . '/../config/google_maps.php';
 
 requireLogin();
 if (!isCustomer()) {
@@ -129,7 +130,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     <div class="mb-3">
                         <label class="form-label">Delivery Address *</label>
-                        <textarea class="form-control" name="delivery_address" rows="4" required><?php echo htmlspecialchars($user['address']); ?></textarea>
+                        <div class="mb-2">
+                            <button type="button" id="getCurrentLocationCheckout" class="btn btn-sm btn-success mb-2">
+                                <i class="fas fa-crosshairs"></i> Use My Current Location
+                            </button>
+                            <a href="../select_location.php" class="btn btn-sm btn-outline-primary mb-2">
+                                <i class="fas fa-map-marker-alt"></i> Select on Map
+                            </a>
+                            <span id="locationStatusCheckout" class="ms-2 text-muted small"></span>
+                        </div>
+                        <input type="text" id="pac-input-checkout" class="form-control mb-2" placeholder="Search for your location...">
+                        <div id="map-checkout" style="height: 300px; border-radius: 10px; width: 100%; margin-bottom: 10px; display: none;"></div>
+                        <textarea class="form-control" id="delivery_address" name="delivery_address" rows="4" required><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
                     </div>
                     
                     <div class="mb-3">
@@ -206,5 +218,188 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 </div>
+
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=<?php echo GOOGLE_MAPS_API_KEY; ?>&libraries=places"></script>
+
+<script>
+let mapCheckout;
+let markerCheckout;
+let geocoderCheckout;
+let autocompleteCheckout;
+let mapVisible = false;
+
+// Initialize map for checkout
+function initMapCheckout() {
+    const defaultLocation = { lat: 18.5204, lng: 73.8567 };
+    const savedLat = <?php echo isset($user['latitude']) && $user['latitude'] ? $user['latitude'] : 'null'; ?>;
+    const savedLng = <?php echo isset($user['longitude']) && $user['longitude'] ? $user['longitude'] : 'null'; ?>;
+    
+    const center = (savedLat && savedLng) ? { lat: parseFloat(savedLat), lng: parseFloat(savedLng) } : defaultLocation;
+    
+    mapCheckout = new google.maps.Map(document.getElementById('map-checkout'), {
+        center: center,
+        zoom: 15,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true
+    });
+    
+    geocoderCheckout = new google.maps.Geocoder();
+    
+    markerCheckout = new google.maps.Marker({
+        map: mapCheckout,
+        draggable: true,
+        animation: google.maps.Animation.DROP,
+        position: center
+    });
+    
+    // Initialize autocomplete
+    const input = document.getElementById('pac-input-checkout');
+    autocompleteCheckout = new google.maps.places.Autocomplete(input);
+    autocompleteCheckout.bindTo('bounds', mapCheckout);
+    
+    // When place is selected from autocomplete
+    autocompleteCheckout.addListener('place_changed', function() {
+        const place = autocompleteCheckout.getPlace();
+        if (!place.geometry) {
+            return;
+        }
+        
+        if (!mapVisible) {
+            document.getElementById('map-checkout').style.display = 'block';
+            mapVisible = true;
+            google.maps.event.trigger(mapCheckout, 'resize');
+        }
+        
+        if (place.geometry.viewport) {
+            mapCheckout.fitBounds(place.geometry.viewport);
+        } else {
+            mapCheckout.setCenter(place.geometry.location);
+            mapCheckout.setZoom(17);
+        }
+        
+        markerCheckout.setPosition(place.geometry.location);
+        updateAddressFromLocationCheckout(place.geometry.location);
+    });
+    
+    // When marker is dragged
+    markerCheckout.addListener('dragend', function() {
+        updateAddressFromLocationCheckout(markerCheckout.getPosition());
+    });
+    
+    // When map is clicked
+    mapCheckout.addListener('click', function(event) {
+        markerCheckout.setPosition(event.latLng);
+        updateAddressFromLocationCheckout(event.latLng);
+    });
+}
+
+// Get current location for checkout
+function getCurrentLocationCheckout() {
+    const statusElement = document.getElementById('locationStatusCheckout');
+    statusElement.textContent = 'Getting your location...';
+    statusElement.className = 'ms-2 text-muted small text-info';
+    
+    if (!mapVisible) {
+        document.getElementById('map-checkout').style.display = 'block';
+        mapVisible = true;
+        if (!mapCheckout) {
+            initMapCheckout();
+        } else {
+            google.maps.event.trigger(mapCheckout, 'resize');
+        }
+    }
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                if (!mapCheckout) {
+                    initMapCheckout();
+                }
+                
+                mapCheckout.setCenter(pos);
+                mapCheckout.setZoom(17);
+                markerCheckout.setPosition(pos);
+                
+                updateAddressFromLocationCheckout(pos);
+                
+                statusElement.textContent = 'Location found!';
+                statusElement.className = 'ms-2 text-muted small text-success';
+                setTimeout(() => {
+                    statusElement.textContent = '';
+                }, 3000);
+            },
+            function(error) {
+                let errorMsg = 'Unable to get location. ';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMsg += 'Please allow location access.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMsg += 'Location unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMsg += 'Request timed out.';
+                        break;
+                    default:
+                        errorMsg += 'Unknown error.';
+                        break;
+                }
+                statusElement.textContent = errorMsg;
+                statusElement.className = 'ms-2 text-muted small text-danger';
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        statusElement.textContent = 'Geolocation not supported.';
+        statusElement.className = 'ms-2 text-muted small text-danger';
+    }
+}
+
+// Update address from location for checkout
+function updateAddressFromLocationCheckout(location) {
+    geocoderCheckout.geocode({ location: location }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+            const address = results[0].formatted_address;
+            document.getElementById('delivery_address').value = address;
+        } else {
+            console.error('Geocoder failed: ' + status);
+        }
+    });
+}
+
+// Event listeners
+if (document.getElementById('getCurrentLocationCheckout')) {
+    document.getElementById('getCurrentLocationCheckout').addEventListener('click', getCurrentLocationCheckout);
+}
+
+// Initialize map when search box is clicked
+document.getElementById('pac-input-checkout').addEventListener('focus', function() {
+    if (!mapVisible) {
+        document.getElementById('map-checkout').style.display = 'block';
+        mapVisible = true;
+        setTimeout(function() {
+            if (!mapCheckout) {
+                initMapCheckout();
+            } else {
+                google.maps.event.trigger(mapCheckout, 'resize');
+            }
+        }, 100);
+    }
+});
+
+// Initialize map on page load if needed
+window.initMapCheckout = initMapCheckout;
+</script>
 
 <?php include '../includes/footer.php'; ?>
