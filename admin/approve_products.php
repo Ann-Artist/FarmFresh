@@ -11,36 +11,65 @@ if (!isAdmin()) {
 $success = '';
 $error = '';
 
-// Handle product approval/rejection
+if (isset($_GET['success'])) {
+    if ($_GET['success'] === 'approved') {
+        $success = 'Product approved successfully!';
+    } elseif ($_GET['success'] === 'rejected') {
+        $success = 'Product rejected successfully!';
+    }
+}
+
+
+// Handle product approval/rejection (FIXED: Post-Redirect-Get)
 if (isset($_POST['approve_product'])) {
+
     $product_id = (int)$_POST['product_id'];
     $action = clean($_POST['action']);
-    $rejection_reason = isset($_POST['rejection_reason']) ? clean($_POST['rejection_reason']) : null;
-    
+    $rejection_reason = isset($_POST['rejection_reason']) 
+        ? clean($_POST['rejection_reason']) 
+        : null;
+
     if ($action === 'approve') {
-        $stmt = $conn->prepare("UPDATE products SET approval_status = 'approved' WHERE id = ?");
+
+        $stmt = $conn->prepare(
+            "UPDATE products 
+             SET approval_status = 'approved' 
+             WHERE id = ?"
+        );
         $stmt->bind_param("i", $product_id);
-        
+
         if ($stmt->execute()) {
-            $success = 'Product approved successfully!';
+            header("Location: approve_products.php?status=pending&success=approved");
+            exit();
         } else {
             $error = 'Failed to approve product';
         }
-    } elseif ($action === 'reject') {
+    }
+
+    if ($action === 'reject') {
+
         if (empty($rejection_reason)) {
             $error = 'Please provide a reason for rejection';
         } else {
-            $stmt = $conn->prepare("UPDATE products SET approval_status = 'rejected', rejection_reason = ? WHERE id = ?");
+
+            $stmt = $conn->prepare(
+                "UPDATE products 
+                 SET approval_status = 'rejected', 
+                     rejection_reason = ? 
+                 WHERE id = ?"
+            );
             $stmt->bind_param("si", $rejection_reason, $product_id);
-            
+
             if ($stmt->execute()) {
-                $success = 'Product rejected';
+                header("Location: approve_products.php?status=pending&success=rejected");
+                exit();
             } else {
                 $error = 'Failed to reject product';
             }
         }
     }
 }
+
 
 // Get filter
 $status_filter = isset($_GET['status']) ? clean($_GET['status']) : 'pending';
